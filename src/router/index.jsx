@@ -1,17 +1,24 @@
 import React from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, Navigate } from 'react-router-dom'
 import Cabins from '../pages/Cabins'
 import Reservations from '../pages/Reservations'
-import NotFound from '../pages/NotFound'
 import Login from '../pages/Login'
+import { useSelector } from 'react-redux'
 
 const Router = () => {
+  const authState = useSelector((state) => state.auth)
+  const isAuth = authState.accessToken;
   return (
     <Routes>
-      <Route path="/" element={<Reservations />} />
-      <Route path="/cabins" element={<Cabins />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="*" element={<NotFound />} />
+      {isAuth &&
+        <>
+          <Route path="/" element={<Navigate to="/reservations" replace />} />
+          <Route path="/reservations" element={<Reservations />} />
+          <Route path="/cabins" element={<Cabins />} />
+        </>
+      }
+      <Route path="/" element={<Login />} />
+      <Route path="*" element={<Navigate to="/" replace />}/>
     </Routes>
   )
 }

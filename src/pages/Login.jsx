@@ -2,15 +2,17 @@ import React from 'react'
 import { Avatar, Button, CssBaseline, TextField, FormControlLabel, Checkbox, Link, Paper, Box, Grid, Typography } from '@mui/material'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Copyright from '../components/Copyright';
+import { useLoginMutation } from '../services/apis/authApi';
 
 const Login = () => {
-  const handleSubmit = (event) => {
+  const [login, { isLoading, error }] = useLoginMutation()
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    const credentials = { email: data.get('email'), password: data.get('password') }
+    await login(credentials);
+
   };
 
   return (

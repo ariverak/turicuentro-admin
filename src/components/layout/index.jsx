@@ -11,11 +11,11 @@ import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
 import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import { mainListItems, secondaryListItems } from './listItems';
+import { MainListItems, SecondaryListItems } from './listItems';
+import { selectCurrentUser } from '../../services/slices/authSlice'
+import { useSelector } from 'react-redux';
 
 const drawerWidth = 240;
 
@@ -66,6 +66,8 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 const mdTheme = createTheme();
 
 const Layout = ({ children }) => {
+  const {name} = useSelector(selectCurrentUser)
+  console.log(name)
   const [open, setOpen] = React.useState(true);
   const toggleDrawer = () => {
     setOpen(!open);
@@ -102,11 +104,9 @@ const Layout = ({ children }) => {
             >
               Turismo El Encuentro
             </Typography>
-            <IconButton color="inherit">
-              <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon />
+              <Badge color="secondary">
+                {name}
               </Badge>
-            </IconButton>
           </Toolbar>
         </AppBar>
         <Drawer variant="permanent" open={open}>
@@ -124,9 +124,9 @@ const Layout = ({ children }) => {
           </Toolbar>
           <Divider />
           <List component="nav">
-            {mainListItems}
+            {MainListItems()}
             <Divider sx={{ my: 1 }} />
-            {secondaryListItems}
+            {SecondaryListItems()}
           </List>
         </Drawer>
         <Box

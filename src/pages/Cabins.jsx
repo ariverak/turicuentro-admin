@@ -1,13 +1,14 @@
 import React from 'react'
 import Layout from '../components/layout'
-import Title from '../components/Title'
+import { useCabinsQuery } from '../services/apis/cabinApi'
 
 const Cabins = () => {
+  const { data: cabins } = useCabinsQuery()
+  console.log(cabins)
   return (
     <>
-    <Title>Cabañas</Title>
       <Layout>
-        <div>Cabinsssssssssssssssssssssssssssssssssssssssssssss</div>
+        <div>CABAÑAS</div>
       </Layout>
     </>
   )
