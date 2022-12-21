@@ -67,7 +67,6 @@ const mdTheme = createTheme();
 
 const Layout = ({ children }) => {
   const {name} = useSelector(selectCurrentUser)
-  console.log(name)
   const [open, setOpen] = React.useState(true);
   const toggleDrawer = () => {
     setOpen(!open);
@@ -104,7 +103,7 @@ const Layout = ({ children }) => {
             >
               Turismo El Encuentro
             </Typography>
-              <Badge color="secondary">
+              <Badge>
                 {name}
               </Badge>
           </Toolbar>
@@ -134,7 +133,7 @@ const Layout = ({ children }) => {
           sx={{
             backgroundColor: (theme) =>
               theme.palette.mode === 'light'
-                ? theme.palette.grey[100]
+                ? theme.palette.grey[50]
                 : theme.palette.grey[900],
             flexGrow: 1,
             height: '100vh',
@@ -142,7 +141,7 @@ const Layout = ({ children }) => {
           }}
         >
           <Toolbar />
-          <Container maxWidth="xlg" sx={{p:4, mt: 4, mb: 4 , bgcolor:'white'}}>
+          <Container maxWidth="xlg" sx={{ p:0, mt:12 }}>
               {children}
           </Container>
         </Box>

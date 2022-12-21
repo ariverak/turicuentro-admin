@@ -6,10 +6,7 @@ import classNames from 'classnames'
 import {
   TextField,
   Box,
-  Dialog,
-  DialogContent,
   Card,
-  CardHeader,
   CardContent,
   Typography,
   Switch,
@@ -21,10 +18,10 @@ import {
   Select,
   MenuItem
 } from '@mui/material'
-import { makeStyles } from '@mui/styles'
+import {styled } from "@mui/material"
 import { useCabinsQuery } from '../../services/apis/cabinApi'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = styled((theme) => ({
   input: {
     marginBottom: '1rem'
   }
@@ -87,6 +84,7 @@ function CustomEditor({ scheduler }) {
               />
             }
             label='Tinaja'
+
           />
           <MobileDateRangePicker
             value={dates}

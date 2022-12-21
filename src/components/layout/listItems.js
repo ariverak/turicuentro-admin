@@ -30,18 +30,22 @@ export const MainListItems = () => {
           <ListItemText primary="Cabañas" />
         </ListItemButton>
       </Link>
-      <ListItemButton>
-        <ListItemIcon>
-          <PeopleIcon />
-        </ListItemIcon>
-        <ListItemText primary="Clientes" />
-      </ListItemButton>
-      <ListItemButton>
-        <ListItemIcon>
-          <SettingsIcon />
-        </ListItemIcon>
-        <ListItemText primary="Configuraciones" />
-      </ListItemButton>
+      <Link to={'/customers'} style={{ textDecoration: 'none' }}>
+        <ListItemButton>
+          <ListItemIcon>
+            <PeopleIcon />
+          </ListItemIcon>
+          <ListItemText primary="Clientes" />
+        </ListItemButton>
+      </Link>
+      <Link to={'/settings'} style={{ textDecoration: 'none' }}>
+        <ListItemButton>
+          <ListItemIcon>
+            <SettingsIcon />
+          </ListItemIcon>
+          <ListItemText primary="Configuraciones" />
+        </ListItemButton>
+      </Link>
     </>
   )
 };

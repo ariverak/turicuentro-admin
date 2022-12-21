@@ -1,50 +1,50 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "../../config/constants";
 
-export const cabinApi = createApi({
-  reducerPath: 'cabinApi',
+export const customerApi = createApi({
+  reducerPath: 'customerApi',
   baseQuery,
   endpoints: (builder) => ({
-    cabins: builder.query({
+    customers: builder.query({
       query: (params) => {
         return {
-          url: '/cabins',
+          url: '/customers',
           method: "GET",
           params,
         }
       },
     }),
     
-    getCabin: builder.query({
+    getCustomer: builder.query({
       query: (id) => {
         return {
-          url: `/cabins/${id}`,
+          url: `/customers/${id}`,
           method: "GET",
         }
       },
     }),
-    createCabin: builder.mutation({
+    createCustomer: builder.mutation({
       query(body) {
         return {
-          url: '/cabins',
+          url: '/customers',
           method: 'POST',
           body,
         }
       },
     }),
-    updateCabin: builder.mutation({
+    updateCustomer: builder.mutation({
       query(body) {
         return {
-          url: `/cabins/${body.id}`,
+          url: `/customers/${body.id}`,
           method: 'PUT',
           body,
         }
       },
     }),
-    deleteCabin: builder.mutation({
+    deleteCustomer: builder.mutation({
       query(id) {
         return {
-          url: `/cabins/${id}`,
+          url: `/customers/${id}`,
           method: 'DELETE',
         }
       },
@@ -54,9 +54,9 @@ export const cabinApi = createApi({
 });
 
 export const {
-  useCabinsQuery,
-  useGetCabinQuery,
-  useCreateCabinMutation,
-  useUpdateCabinMutation,
-  useDeleteCabinMutation
-} = cabinApi;
+  useCustomersQuery,
+  useGetCustomerQuery,
+  useCreateCustomerMutation,
+  useUpdateCustomerMutation,
+  useDeleteCustomerMutation,
+} = customerApi;

@@ -1,8 +1,8 @@
-import { Box, Button, FormControl, Grid, IconButton, TextField, Typography } from '@mui/material'
+import { Button, FormControl, Grid, IconButton, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import Layout from '../components/layout'
 import Table from '../components/Table.jsx'
-import { useCabinsQuery, useCreateCabinMutation, useUpdateCabinMutation, useDeleteCabinMutation } from '../services/apis/cabinApi'
+import { useSettingsQuery, useCreateSettingMutation, useUpdateSettingMutation, useDeleteSettingMutation } from '../services/apis/settingApi'
 import FormModal from '../components/FormModal'
 import DeleteModal from '../components/DeleteModal'
 import { useForm } from 'react-hook-form'
@@ -10,43 +10,43 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-const Cabins = () => {
-  const [deleteCabin, { isLoading: isLoadingDelete }] = useDeleteCabinMutation();
-  const [updateCabin, { isLoading: isLoadingUpdate }] = useUpdateCabinMutation();
-  const [createCabin, { isLoading: isLoadingCreate }] = useCreateCabinMutation();
+const Settings = () => {
+  const [deleteSetting, { isLoading: isLoadingDelete }] = useDeleteSettingMutation();
+  const [createSetting, { isLoading: isLoadingUpdate }] = useCreateSettingMutation();
+  const [updateSetting, { isLoading: isLoadingCreate }] = useUpdateSettingMutation();
 
-  const { data: cabins, refetch: refetchCabin } = useCabinsQuery()
+  const { data: settings, refetch: refetchSetting } = useSettingsQuery()
 
-  const [cabinModal, setCabinModal] = useState({ visible: false, cabin: null })
-  const [deleteModal, setDeleteModal] = useState({ visible: false, cabinId: null })
+  const [settingModal, setSettingModal] = useState({ visible: false, setting: null })
+  const [deleteModal, setDeleteModal] = useState({ visible: false, settingId: null })
 
   const {
-    handleSubmit: handleSubmitCabin,
-    register: registerCabin,
-    reset: resetCabin,
-    setValue: setCabinValue,
+    handleSubmit: handleSubmitSetting,
+    register: registerSetting,
+    reset: resetSetting,
+    setValue: setSettingValue,
   } = useForm();
 
-  const onSubmitCabin = async (data) => {
+  const onSubmitSetting = async (data) => {
 
-    const { id, name, price } = data;
-    const editedData = { id, name, price }
-    data.id ? await updateCabin(editedData) : await createCabin(data);
-    refetchCabin();
-    resetCabin();
-    setCabinModal({ visible: false });
+    const { id, key, value } = data;
+    const editedData = { id, key, value }
+    data.id ? await updateSetting(editedData) : await createSetting(data);
+    refetchSetting();
+    resetSetting();
+    setSettingModal({ visible: false });
   };
 
-  const handleDeleteCabin = async () => {
-    await deleteCabin(deleteModal.cabinId);
-    refetchCabin();
+  const handleDeleteSetting = async () => {
+    await deleteSetting(deleteModal.settingId);
+    refetchSetting();
     setDeleteModal({ visible: false });
   };
 
   const columns = [
     {
-      field: 'name',
-      headerName: 'Cabaña',
+      field: 'key',
+      headerName: 'Llave',
       headerClassName: 'backgroundColor:#eee',
       flex: 0.1,
       width: 150,
@@ -54,9 +54,9 @@ const Cabins = () => {
     },
 
     {
-      field: 'price',
+      field: 'value',
       flex: 0.1,
-      headerName: 'Precio',
+      headerName: 'Valor',
       headerAlign: 'left',
       align: 'left',
       type: 'number',
@@ -78,7 +78,7 @@ const Cabins = () => {
             color="primary"
             size="small"
             onClick={() => {
-              setCabinModal({ visible: true, cabin: params.row })
+              setSettingModal({ visible: true, setting: params.row })
             }}
           >
             <EditIcon />
@@ -88,7 +88,7 @@ const Cabins = () => {
             color="error"
             size="small"
             onClick={() => {
-              setDeleteModal({ visible: true, cabinId: params.row.id })
+              setDeleteModal({ visible: true, settingId: params.row.id })
               console.log(params.row.id)
             }}
           >
@@ -103,54 +103,53 @@ const Cabins = () => {
     <>
       <Layout>
         <Grid justifyContent="end" container width='90%'>
-          <Button variant="contained" onClick={() => { setCabinModal({ visible: true }) }}>
+          <Button variant="contained" onClick={() => { setSettingModal({ visible: true }) }}>
             Agregar
           </Button>
         </Grid>
         <br />
         <Grid rounded="true" justifyContent="center" container alignItems="center">
-          {cabins &&
+          {settings &&
             <Table
-              data={cabins}
+              data={settings}
               columns={columns}
             />
           }
         </Grid>
       </Layout>
       <FormModal
-        id="form-cabin"
-        title={!cabinModal.cabin ? 'Agregar Cabaña' : 'Editar Cabaña'}
-        open={cabinModal.visible}
-        onClose={() => setCabinModal({ visible: false })}
+        id="form-setting"
+        title={!settingModal.setting ? 'Agregar Configuración' : 'Editar Configuración'}
+        open={settingModal.visible}
+        onClose={() => setSettingModal({ visible: false })}
 
-        defaultValues={cabinModal.cabin}
-        setValue={setCabinValue}
-        reset={resetCabin}>
+        defaultValues={settingModal.setting}
+        setValue={setSettingValue}
+        reset={resetSetting}>
         <FormControl>
-          <form onSubmit={handleSubmitCabin(onSubmitCabin)}>
+          <form onSubmit={handleSubmitSetting(onSubmitSetting)}>
             <TextField
               margin="normal"
               fullWidth
-              id="name"
-              label="Cabaña"
-              name="name"
-              {...registerCabin("name")}
+              id="key"
+              label="Configuración"
+              name="key"
+              {...registerSetting("key")}
 
             />
             <TextField
               margin="normal"
               fullWidth
-              id="price"
-              label="Precio"
-              type="number"
-              name="price"
-              {...registerCabin("price")}
+              id="value"
+              label="Valor"
+              name="value"
+              {...registerSetting("value")}
 
             />
             <Grid justifyContent="space-between" container marginTop={3}>
               <Button
                 variant="outlined"
-                onClick={() => { setCabinModal({ visible: false }) }}
+                onClick={() => { setSettingModal({ visible: false }) }}
               >
                 Cancelar
               </Button>
@@ -168,11 +167,11 @@ const Cabins = () => {
       <DeleteModal
         open={deleteModal.visible}
         onClose={() => setDeleteModal({ visible: false })}
-        onConfirm={handleDeleteCabin}
+        onConfirm={handleDeleteSetting}
         description={
           <>
             <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
-              ¿Quieres eliminar esta cabaña?
+              ¿Quieres eliminar esta configuración?
             </Typography>
             <Typography>
               Este proceso no puede ser revertido.
@@ -184,4 +183,4 @@ const Cabins = () => {
   )
 }
 
-export default Cabins
+export default Settings

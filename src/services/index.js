@@ -13,11 +13,15 @@ import {
 } from "reduxjs-toolkit-persist";
 import { authApi } from "./apis/authApi";
 import { cabinApi } from "./apis/cabinApi";
+import { customerApi } from "./apis/customerApi";
+import { settingApi } from "./apis/settingApi";
 import { reduxPersistConfig } from "../config/reduxPersist";
 
 const reducers = combineReducers({
   [authApi.reducerPath]: authApi.reducer,
   [cabinApi.reducerPath]: cabinApi.reducer,
+  [customerApi.reducerPath]: customerApi.reducer,
+  [settingApi.reducerPath]: settingApi.reducer,
   auth: authReducer,
 });
 
@@ -34,6 +38,8 @@ export const store = configureStore({
     }).concat(
       authApi.middleware,
       cabinApi.middleware,
+      customerApi.middleware,
+      settingApi.middleware,
     ),
   devTools: true,
 });
