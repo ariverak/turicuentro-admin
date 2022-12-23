@@ -1,0 +1,8 @@
+
+.rs__cell p {
+  pointer-events: none;
+}
+
+main {
+  width: 100vw;
+}

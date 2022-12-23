@@ -1,79 +1,53 @@
 import React from 'react';
-import { ListItemButton, ListItemText, ListSubheader, ListItemIcon } from '@mui/material'
+import { ListItemButton, ListItemText, ListItemIcon, Divider } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import HouseIcon from '@mui/icons-material/House';
 import SettingsIcon from '@mui/icons-material/Settings';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutOutIcon from '@mui/icons-material/Logout';
 import { Link } from 'react-router-dom';
 import { logOut } from '../../services/slices/authSlice'
 import { useDispatch } from 'react-redux'
+import { useNavigate } from "react-router-dom";
 
-
-export const MainListItems = () => {
+const ListItems = () => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
   return (
     <>
-      <Link to={'/reservations'} style={{ textDecoration: 'none' }}>
-        <ListItemButton>
+        <ListItemButton onClick={()=>navigate('/reservations')}>
           <ListItemIcon>
             <DashboardIcon />
           </ListItemIcon>
           <ListItemText primary="Reservas" />
         </ListItemButton>
-      </Link>
-      <Link to={'/cabins'} style={{ textDecoration: 'none' }}>
-        <ListItemButton>
+        <ListItemButton onClick={()=>navigate('/cabins')}>
           <ListItemIcon>
             <HouseIcon />
           </ListItemIcon>
           <ListItemText primary="Cabañas" />
         </ListItemButton>
-      </Link>
-      <Link to={'/customers'} style={{ textDecoration: 'none' }}>
-        <ListItemButton>
+        <ListItemButton onClick={()=>navigate('/customers')}>
           <ListItemIcon>
             <PeopleIcon />
           </ListItemIcon>
           <ListItemText primary="Clientes" />
         </ListItemButton>
-      </Link>
-      <Link to={'/settings'} style={{ textDecoration: 'none' }}>
-        <ListItemButton>
+        <ListItemButton onClick={()=>navigate('/settings')}>
           <ListItemIcon>
             <SettingsIcon />
           </ListItemIcon>
           <ListItemText primary="Configuraciones" />
         </ListItemButton>
-      </Link>
-    </>
-  )
-};
-
-
-export const SecondaryListItems = () => {
-  const dispatch = useDispatch()
-
-  return (
-    <>
-      <ListSubheader component="div" inset>
-        Otras opciones
-      </ListSubheader>
-      <ListItemButton>
-        <ListItemIcon>
-          <AccountCircleIcon />
-        </ListItemIcon>
-        <ListItemText primary="Mi perfil" />
-      </ListItemButton>
-      <Link to={'/'} style={{ textDecoration: 'none' }}>
+      <Divider sx={{ my: 1 }} />
         <ListItemButton onClick={() => dispatch(logOut())}>
           <ListItemIcon>
             <LogoutOutIcon />
           </ListItemIcon>
           <ListItemText primary="Cerrar sesión" />
         </ListItemButton>
-      </Link>
-
     </>
   )
 };
+
+export default ListItems

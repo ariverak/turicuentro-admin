@@ -3,6 +3,7 @@ import Router from './router'
 import { Provider } from "react-redux";
 import { store, persistor } from './services'
 import { PersistGate } from 'reduxjs-toolkit-persist/integration/react';
+import './styles/index.css'
 
 const App = () => {
   return (

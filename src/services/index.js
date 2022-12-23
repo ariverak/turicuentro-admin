@@ -12,6 +12,7 @@ import {
   REGISTER,
 } from "reduxjs-toolkit-persist";
 import { authApi } from "./apis/authApi";
+import { reservationApi } from "./apis/reservationApi";
 import { cabinApi } from "./apis/cabinApi";
 import { customerApi } from "./apis/customerApi";
 import { settingApi } from "./apis/settingApi";
@@ -19,6 +20,7 @@ import { reduxPersistConfig } from "../config/reduxPersist";
 
 const reducers = combineReducers({
   [authApi.reducerPath]: authApi.reducer,
+  [reservationApi.reducerPath]: reservationApi.reducer,
   [cabinApi.reducerPath]: cabinApi.reducer,
   [customerApi.reducerPath]: customerApi.reducer,
   [settingApi.reducerPath]: settingApi.reducer,
@@ -37,6 +39,7 @@ export const store = configureStore({
       },
     }).concat(
       authApi.middleware,
+      reservationApi.middleware,
       cabinApi.middleware,
       customerApi.middleware,
       settingApi.middleware,

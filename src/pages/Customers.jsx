@@ -58,7 +58,7 @@ const Customers = () => {
       flex: 0.1,
       headerName: 'Correo',
       align: 'left',
-      type: 'mail',
+      type: 'string',
       width: 150,
     },
     {
@@ -66,7 +66,7 @@ const Customers = () => {
       flex: 0.1,
       headerName: 'Teléfono',
       align: 'left',
-      type: 'phone',
+      type: 'string',
       width: 150,
     },
     {

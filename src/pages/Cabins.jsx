@@ -1,4 +1,4 @@
-import { Box, Button, FormControl, Grid, IconButton, TextField, Typography } from '@mui/material'
+import { Box, Button, FormControl, Grid, IconButton, TextField, Typography, Popover } from '@mui/material'
 import { useState } from 'react'
 import Layout from '../components/layout'
 import Table from '../components/Table.jsx'
@@ -8,12 +8,16 @@ import DeleteModal from '../components/DeleteModal'
 import { useForm } from 'react-hook-form'
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import { HexColorPicker } from 'react-colorful'
 
 
 const Cabins = () => {
+  const [showColorPicker, setShowColorPicker] = useState()
   const [deleteCabin, { isLoading: isLoadingDelete }] = useDeleteCabinMutation();
   const [updateCabin, { isLoading: isLoadingUpdate }] = useUpdateCabinMutation();
   const [createCabin, { isLoading: isLoadingCreate }] = useCreateCabinMutation();
+
+  
 
   const { data: cabins, refetch: refetchCabin } = useCabinsQuery()
 
@@ -25,12 +29,26 @@ const Cabins = () => {
     register: registerCabin,
     reset: resetCabin,
     setValue: setCabinValue,
+    watch
   } = useForm();
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const color = watch('color')
+  const handleClickShowColorPicker = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseColorPicker = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+  const id = open ? 'simple-popover' : undefined;
 
   const onSubmitCabin = async (data) => {
 
-    const { id, name, price } = data;
-    const editedData = { id, name, price }
+    const { id, name, price, color } = data;
+    const editedData = { id, name, price, color }
     data.id ? await updateCabin(editedData) : await createCabin(data);
     refetchCabin();
     resetCabin();
@@ -147,6 +165,25 @@ const Cabins = () => {
               {...registerCabin("price")}
 
             />
+            <Box sx={{backgroundColor:color,height:50, border:'1px solid lightgray',width:200,mt:2,cursor:'pointer'}} justifyContent='center' alignItems='center' display='flex' onClick={handleClickShowColorPicker}>
+
+              <Typography color='black' fontWeight='bold'>
+                {color || 'Seleccionar Color'}
+              
+              </Typography>
+            </Box>
+            <Popover
+              id={id}
+              open={open}
+              anchorEl={anchorEl}
+              onClose={handleCloseColorPicker}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+              }}
+            >
+              <HexColorPicker color={color || '#fff'} onChange={(c)=>setCabinValue('color',c)} />
+            </Popover>
             <Grid justifyContent="space-between" container marginTop={3}>
               <Button
                 variant="outlined"
