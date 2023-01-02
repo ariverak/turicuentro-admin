@@ -16,6 +16,7 @@ import { reservationApi } from "./apis/reservationApi";
 import { cabinApi } from "./apis/cabinApi";
 import { customerApi } from "./apis/customerApi";
 import { settingApi } from "./apis/settingApi";
+import { prepaidApi } from "./apis/prepaidApi";
 import { reduxPersistConfig } from "../config/reduxPersist";
 
 const reducers = combineReducers({
@@ -24,6 +25,7 @@ const reducers = combineReducers({
   [cabinApi.reducerPath]: cabinApi.reducer,
   [customerApi.reducerPath]: customerApi.reducer,
   [settingApi.reducerPath]: settingApi.reducer,
+  [prepaidApi.reducerPath]: prepaidApi.reducer,
   auth: authReducer,
 });
 
@@ -43,6 +45,7 @@ export const store = configureStore({
       cabinApi.middleware,
       customerApi.middleware,
       settingApi.middleware,
+      prepaidApi.middleware,
     ),
   devTools: true,
 });

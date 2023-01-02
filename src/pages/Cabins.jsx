@@ -75,6 +75,7 @@ const Cabins = () => {
       field: 'price',
       flex: 0.1,
       headerName: 'Precio',
+      
       headerAlign: 'left',
       align: 'left',
       type: 'number',
