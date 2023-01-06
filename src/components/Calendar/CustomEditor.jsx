@@ -19,37 +19,34 @@ import {
   MenuItem,
   Grid,
 } from "@mui/material";
-import { styled } from "@mui/material";
 import { useCabinsQuery } from "../../services/apis/cabinApi";
 import { useCustomersQuery } from "../../services/apis/customerApi";
 import moment from "moment";
 import { formatter } from "../../config/constants";
-const useStyles = styled((theme) => ({
-  input: {
-    marginBottom: "1rem",
-  },
-}));
+import { useSettingsQuery } from "../../services/apis/settingApi";
+
 
 function CustomEditor({ scheduler }) {
   const { data: cabins } = useCabinsQuery();
   const { data: customers } = useCustomersQuery();
-
-  const classes = useStyles();
+  const { data: settings } = useSettingsQuery();
 
   const [open, setOpen] = useState(false);
+  const [reservationId, setReservationId] = useState(null);
   const [dates, setDates] = useState([null, null]);
-  const [cabin, setCabin] = useState(null);
+  const [cabinId, setCabinId] = useState(-1);
+  const [customerId, setCustomerId] = useState(-1);
   const [discount, setDiscount] = useState(0);
-  const [customer, setCustomer] = useState(null);
   const [tinaja, setTinaja] = useState(false);
   const [comments, setComments] = useState("");
 
-
-
+  const settingTinaja = settings?.reduce((setting) => setting.key === "Tinaja");
+  const amountTinaja = tinaja ? +settingTinaja?.value : 0;
   const reservationDays =
     dates[1] && moment.duration(moment(dates[1]).diff(moment(dates[0]))).days();
-  const amount = (cabin?.price && cabin.price * reservationDays) || 0;
-  const totalAmount = amount - discount;
+  const cabinPrice = cabins?.filter((cabin) => cabin.id === cabinId)[0]?.price;
+  const amount = cabinPrice * reservationDays || cabinPrice || 0;
+  const totalAmount = amount - discount + amountTinaja;
 
   const verifyDiscount = (disc) => {
     if (!discount) {
@@ -73,6 +70,29 @@ function CustomEditor({ scheduler }) {
     setDates([scheduler.state.start.value, null]);
   }, [scheduler]);
 
+  useEffect(() => {
+    console.log(scheduler.edited);
+    if (scheduler?.edited) {
+      const {
+        id,
+        cabin,
+        customer,
+        tinaja,
+        comments,
+        discount,
+        startDate,
+        endDate,
+      } = scheduler?.edited?.reservation;
+      setReservationId(id);
+      setCabinId(cabin.id);
+      setCustomerId(customer.id);
+      setTinaja(tinaja);
+      setComments(comments);
+      setDiscount(discount);
+      setDates([startDate, endDate]);
+    }
+  }, [scheduler?.edited]);
+
   return (
     <LocalizationProvider
       dateAdapter={AdapterDateFns}
@@ -83,22 +103,18 @@ function CustomEditor({ scheduler }) {
           <Typography sx={{ fontSize: 16, marginBottom: 2 }} gutterBottom>
             Agregar reserva
           </Typography>
-          <FormControl
-            className={classes.input}
-            fullWidth
-            sx={{ marginBottom: 2 }}
-          >
+          <FormControl fullWidth sx={{ marginBottom: 2 }}>
             <InputLabel id="select-cabin-label">Cabaña</InputLabel>
             <Select
               labelId="select-cabin-label"
-              value={cabin}
+              value={cabinId}
               label="Cabaña"
-              onChange={(e) => setCabin(e.target.value)}
+              onChange={(e) => setCabinId(e.target.value)}
             >
-              <MenuItem value={null}>Ninguna</MenuItem>
+              <MenuItem value={-1}>NO SELECCIONADO</MenuItem>
               {cabins &&
                 cabins.map((cabin) => (
-                  <MenuItem key={cabin.id} value={cabin}>
+                  <MenuItem key={cabin.id} value={cabin.id}>
                     {cabin.name}
                   </MenuItem>
                 ))}
@@ -108,14 +124,14 @@ function CustomEditor({ scheduler }) {
             <InputLabel id="select-customer-label">Cliente</InputLabel>
             <Select
               labelId="select-customer-label"
-              value={customer}
+              value={customerId}
               label="Cliente"
-              onChange={(e) => setCustomer(e.target.value)}
+              onChange={(e) => setCustomerId(e.target.value)}
             >
-              <MenuItem value={null}>Ninguna</MenuItem>
+              <MenuItem value={-1}>NO SELECCIONADO</MenuItem>
               {customers &&
                 customers.map((customer) => (
-                  <MenuItem key={customer.id} value={customer}>
+                  <MenuItem key={customer.id} value={customer.id}>
                     {customer.fullname}
                   </MenuItem>
                 ))}
@@ -127,6 +143,7 @@ function CustomEditor({ scheduler }) {
             labelPlacement="start"
             control={
               <Switch
+                checked={tinaja}
                 onChange={(e) => setTinaja(e.target.checked)}
                 name="tinaja"
               />
@@ -136,6 +153,7 @@ function CustomEditor({ scheduler }) {
             <TextField
               label="Comentarios"
               variant="outlined"
+              value={comments}
               onChange={(e) => setComments(e.target.value)}
             />
           </FormControl>
@@ -146,7 +164,7 @@ function CustomEditor({ scheduler }) {
                   focused
                   disabled
                   value={formatter.format(amount)}
-                  label="Monto"
+                  label="Valor Cabaña + Noches"
                 />
               </FormControl>
             </Grid>
@@ -222,7 +240,7 @@ function CustomEditor({ scheduler }) {
               focused
               disabled
               value={formatter.format(totalAmount)}
-              label="Monto + Descuento"
+              label="Total + Descuento"
             />
           </FormControl>
 
@@ -236,7 +254,7 @@ function CustomEditor({ scheduler }) {
             open={open}
             onOpen={() => setOpen(true)}
             onClose={() => setOpen(false)}
-            className={classNames("custom-editor", classes.input)}
+            className={classNames("custom-editor")}
             onChange={(newValue) => {
               setDates(newValue);
             }}
@@ -262,15 +280,15 @@ function CustomEditor({ scheduler }) {
             color="primary"
             onClick={() => {
               scheduler.handleConfirm({
-                cabin,
-                customer,
+                id: reservationId,
+                cabinId,
+                customerId,
                 tinaja,
                 comments,
                 amount: totalAmount,
                 discount,
                 dates,
-              });
-              scheduler.close();
+              }, scheduler.close);
             }}
           >
             Confirmar
