@@ -1,17 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Scheduler } from "react-scheduler-fix";
-import CustomEditor from "./CustomEditor";
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { Scheduler } from 'react-scheduler-fix'
+import CustomEditor from './CustomEditor'
 import {
   useCreateReservationMutation,
   useDeleteReservationMutation,
-  useReservationsQuery,
-} from "../../services/apis/reservationApi";
+  useReservationsQuery
+} from '../../services/apis/reservationApi'
 import {
   useCreatePrepaidMutation,
   useDeletePrepaidMutation,
   //useUpdatePrepaidMutation,
-  usePrepaidsQuery,
-} from "../../services/apis/prepaidApi";
+  usePrepaidsQuery
+} from '../../services/apis/prepaidApi'
 import {
   Alert,
   Avatar,
@@ -20,233 +20,256 @@ import {
   List,
   ListItem,
   ListItemAvatar,
-  ListItemText,
-} from "@mui/material";
-import PaymentsIcon from "@mui/icons-material/Payments";
-import DeleteIcon from "@mui/icons-material/Delete";
-import moment from "moment";
-import { Box, Button, FormControl, Grid, TextField } from "@mui/material";
-import FormModal from "../FormModal";
-import GenericModal from "../GenericModal";
-import { useForm } from "react-hook-form";
-import { useConfirm } from "material-ui-confirm";
-import { formatter } from "../../config/constants";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
+  ListItemText
+} from '@mui/material'
+import PaymentsIcon from '@mui/icons-material/Payments'
+import DeleteIcon from '@mui/icons-material/Delete'
+import moment from 'moment'
+import { Box, Button, FormControl, Grid, TextField } from '@mui/material'
+import FormModal from '../FormModal'
+import GenericModal from '../GenericModal'
+import { useForm } from 'react-hook-form'
+import { useConfirm } from 'material-ui-confirm'
+import { formatter } from '../../config/constants'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
+import _ from 'lodash'
 
 const Calendar = () => {
-
-  const confirm = useConfirm();
-  const [prepaidAmount, setPrepaidAmount] = useState();
-  const [addPrepaidModal, setAddPrepaidModal] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState(null);
-  const [prepaidDate, setPrepaidDate] = useState(moment().format("YYYY-MM-DD"));
-  const [dates, setDates] = useState(null);
+  const confirm = useConfirm()
+  const [prepaidAmount, setPrepaidAmount] = useState()
+  const [addPrepaidModal, setAddPrepaidModal] = useState(false)
+  const [selectedReservation, setSelectedReservation] = useState(null)
+  const [prepaidDate, setPrepaidDate] = useState(moment().format('YYYY-MM-DD'))
+  const [dates, setDates] = useState(null)
   const [listModal, setListModal] = useState({
     visible: false,
-    prepaids: null,
-  });
+    prepaids: null
+  })
 
-  const { data: reservations, refetch: refetchReservations, isLoading } = useReservationsQuery(
-    dates, {
-      skip: !dates,
-    });
-  const [createReservation, { isLoading: isLoadingCreate }] = useCreateReservationMutation();
-  const [deleteReservation, { isLoading: isLoadingDelete }] = useDeleteReservationMutation();
+  const {
+    data: reservations,
+    refetch: refetchReservations,
+    isLoading
+  } = useReservationsQuery(dates, {
+    skip: !dates,
+    refetchOnMountOrArgChange: true
+  })
+  const [createReservation, { isLoading: isLoadingCreate }] =
+    useCreateReservationMutation()
+  const [deleteReservation, { isLoading: isLoadingDelete }] =
+    useDeleteReservationMutation()
 
   const {
     handleSubmit: handleSubmitPrepaid,
     //register: registerPrepaid,
     //reset: resetPrepaid,
-    setValue: setPrepaidValue,
-  } = useForm();
+    setValue: setPrepaidValue
+  } = useForm()
 
-  const [deletePrepaid] = useDeletePrepaidMutation();
-  const [createPrepaid] = useCreatePrepaidMutation();
+  const [deletePrepaid] = useDeletePrepaidMutation()
+  const [createPrepaid] = useCreatePrepaidMutation()
   //const [updatePrepaid] = useUpdatePrepaidMutation();
 
   const { data: prepaids, refetch: refetchPrepaid } = usePrepaidsQuery(
     selectedReservation?.query,
     {
-      skip: !selectedReservation?.query,
+      skip: !selectedReservation?.query
     },
     [selectedReservation?.query]
-  );
+  )
   const formattedEvents = useMemo(() => {
-    const events = [];
+    const events = []
     reservations &&
       reservations.map((reservation) =>
         events.push({
           event_id: reservation.id,
           title: `Reserva - ${reservation.cabin.name} ${moment(
             reservation.startDate
-          ).format("DD")} al  ${moment(reservation.endDate).format("DD")}`,
+          ).format('DD')} al  ${moment(reservation.endDate).format('DD')}`,
           start: new Date(reservation.startDate),
           end: new Date(reservation.endDate),
           color: reservation.cabin.color,
-          reservation,
+          reservation
         })
-      );
-    return events;
-  }, [reservations]);
+      )
+    return events
+  }, [reservations])
 
-  const reservationAmount = selectedReservation?.content?.amount;
+  const reservationAmount = selectedReservation?.content?.amount
   const totalAmountPrepaids = prepaids?.reduce(
     (prev, { amount }) => prev + amount,
     0
-  );
-  const remainingAmount = reservationAmount - totalAmountPrepaids || 0;
+  )
+  const remainingAmount = reservationAmount - totalAmountPrepaids || 0
 
   const getRemoteEvents = (e) => {
     setDates({
-      startDate: moment(e.start).format("YYYY-MM-DD"),
-      endDate: moment(e.end).format("YYYY-MM-DD"),
-    });
-  };
+      startDate: moment(e.start).format('YYYY-MM-DD'),
+      endDate: moment(e.end).format('YYYY-MM-DD')
+    })
+  }
 
   useEffect(() => {
     if (selectedReservation?.content) {
-      setPrepaidValue("amount", prepaidAmount);
-      setPrepaidValue("date", prepaidDate);
-      setPrepaidValue("reservationId", selectedReservation.content?.id);
+      setPrepaidValue('amount', prepaidAmount)
+      setPrepaidValue('date', prepaidDate)
+      setPrepaidValue('reservationId', selectedReservation.content?.id)
     }
   }, [
     prepaidAmount,
     prepaidDate,
     selectedReservation?.content,
-    setPrepaidValue,
-  ]);
+    setPrepaidValue
+  ])
 
   const handleConfirm = async (data) => {
-    const { cabin, customer, amount, discount, comments, dates, tinaja } = data;
+    const { cabin, customerId, amount, discount, comments, dates, tinaja } =
+      data
     const reservation = {
       cabinId: cabin.id,
-      customerId: customer.id,
+      customerId,
       amount,
       discount,
       startDate: dates[0],
       endDate: dates[1],
       tinaja,
-      comments,
-    };
-    await createReservation(reservation);
-    refetchReservations();
-  };
-  
+      comments
+    }
+    await createReservation(reservation)
+    refetchReservations()
+  }
+
   const handleDeleteReservation = async (deletedId) => {
-    await deleteReservation(deletedId);
-    refetchReservations();
-  };
+    await deleteReservation(deletedId)
+    refetchReservations()
+  }
 
   const onSubmitPrepaid = async (data) => {
-    console.log(data);
-    await createPrepaid(data);
-    refetchPrepaid();
-    setAddPrepaidModal(false);
-  };
+    console.log(data)
+    await createPrepaid(data)
+    refetchPrepaid()
+    setAddPrepaidModal(false)
+  }
 
   const handleDeletePrepaid = async (prepaid) => {
     try {
       await confirm({
-        title: "¿Estas seguro?",
+        title: '¿Estas seguro?',
         description: `Se descontarán los ${formatter.format(
           prepaid.amount
-        )} abonados en esta reserva.`,
-      });
-      await deletePrepaid(prepaid.id);
-      refetchPrepaid();
+        )} abonados en esta reserva.`
+      })
+      await deletePrepaid(prepaid.id)
+      refetchPrepaid()
     } catch (e) {
-      console.log(e);
+      console.log(e)
     }
-  };
+  }
+
+  const getReservationsByDate = useCallback(
+    (date) => {
+      console.log('reservationsasdas', reservations)
+      const reservationsByDate = reservations?.filter((reservation) => {
+        const startDate = moment(reservation.startDate)
+        const endDate = moment(reservation.endDate)
+        return date.isBetween(startDate, endDate, 'day', '[]')
+      })
+      return reservationsByDate || []
+    },
+    [reservations]
+  )
 
   return (
     <>
       <Scheduler
-        view="month"
+        view='month'
         loading={isLoading}
-        customEditor={(scheduler) => (
-          <CustomEditor
-            scheduler={{
-              ...scheduler,
-              handleConfirm,
-            }}
-          />
-        )}
+        customEditor={(scheduler) => {
+          return (
+            <CustomEditor
+              scheduler={{
+                ...scheduler,
+                reservations: getReservationsByDate(scheduler.date),
+                handleConfirm
+              }}
+            />
+          )
+        }}
         getRemoteEvents={getRemoteEvents}
         events={formattedEvents}
         onConfirm={handleConfirm}
         onDelete={handleDeleteReservation}
         viewerExtraComponent={(fields, event) => {
           return (
-            <Box sx={{ display: "flex", justifyContent: "center", my: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 1 }}>
               <Button
-                variant="outlined"
+                variant='outlined'
                 onClick={() => {
                   setSelectedReservation({
-                    query: { reservationId: event.reservation.id},
-                    content: event.reservation,
-                  });
-                  setListModal({ visible: true, prepaids });
+                    query: { reservationId: event.reservation.id },
+                    content: event.reservation
+                  })
+                  setListModal({ visible: true, prepaids })
                 }}
               >
                 Listar abonos
               </Button>
             </Box>
-          );
+          )
         }}
         translations={{
           navigation: {
-            month: "Mes",
+            month: 'Mes'
           },
           form: {
-            addTitle: "Agregar Reserva",
-            editTitle: "Editar Reserva",
-            confirm: "Confirmar",
-            delete: "Eliminar",
-            cancel: "Cancelar",
+            addTitle: 'Agregar Reserva',
+            editTitle: 'Editar Reserva',
+            confirm: 'Confirmar',
+            delete: 'Eliminar',
+            cancel: 'Cancelar'
           },
           event: {
-            title: "Título",
-            start: "Entrada",
-            end: "Salida",
-            allDay: "Todo el día",
-          },
+            title: 'Título',
+            start: 'Entrada',
+            end: 'Salida',
+            allDay: 'Todo el día'
+          }
         }}
       />
 
       <FormModal
-        id="form-prepaid"
-        title="Agregar abono"
+        id='form-prepaid'
+        title='Agregar abono'
         open={addPrepaidModal}
         onClose={() => {
-          setAddPrepaidModal(false);
+          setAddPrepaidModal(false)
         }}
       >
         <FormControl>
           <form onSubmit={handleSubmitPrepaid(onSubmitPrepaid)}>
             <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
+              display='flex'
+              alignItems='center'
+              justifyContent='space-between'
               gap={2}
             >
               <TextField
-                type="number"
-                margin="normal"
+                type='number'
+                margin='normal'
                 value={prepaidAmount}
-                id="amount"
-                label="Monto"
-                name="amount"
+                id='amount'
+                label='Monto'
+                name='amount'
                 onChange={(e) => {
-                  if (e.target.value > remainingAmount) return;
-                  setPrepaidAmount(e.target.value);
+                  if (e.target.value > remainingAmount) return
+                  setPrepaidAmount(e.target.value)
                 }}
               />
               <Button
-                variant="contained"
-                color="secondary"
+                variant='contained'
+                color='secondary'
                 onClick={() => {
-                  setPrepaidAmount(remainingAmount);
+                  setPrepaidAmount(remainingAmount)
                 }}
               >
                 Autocompletar
@@ -255,29 +278,29 @@ const Calendar = () => {
             <TextField
               sx={{ mt: 1 }}
               fullWidth
-              id="date"
-              name="date"
+              id='date'
+              name='date'
               value={prepaidDate}
-              label="Fecha"
-              type="date"
+              label='Fecha'
+              type='date'
               InputLabelProps={{
-                shrink: true,
+                shrink: true
               }}
               onChange={(e) => {
-                setPrepaidDate(e.target.value);
+                setPrepaidDate(e.target.value)
               }}
             />
 
-            <Grid justifyContent="space-between" container marginTop={3}>
+            <Grid justifyContent='space-between' container marginTop={3}>
               <Button
-                variant="outlined"
+                variant='outlined'
                 onClick={() => {
-                  setAddPrepaidModal(false);
+                  setAddPrepaidModal(false)
                 }}
               >
                 Cancelar
               </Button>
-              <Button type="submit" variant="contained">
+              <Button type='submit' variant='contained'>
                 Aceptar
               </Button>
             </Grid>
@@ -287,14 +310,14 @@ const Calendar = () => {
 
       <GenericModal
         open={listModal.visible}
-        title="Abonos"
+        title='Abonos'
         onClose={() => setListModal({ visible: false })}
         actionButton={
           <Button
             endIcon={<AddCircleIcon />}
-            variant="contained"
+            variant='contained'
             onClick={() => {
-              setAddPrepaidModal(true);
+              setAddPrepaidModal(true)
             }}
           >
             Agregar
@@ -309,39 +332,39 @@ const Calendar = () => {
                   key={prepaid.id}
                   secondaryAction={
                     <IconButton
-                      edge="end"
-                      aria-label="delete"
+                      edge='end'
+                      aria-label='delete'
                       onClick={() => handleDeletePrepaid(prepaid)}
                     >
-                      <DeleteIcon color="error" />
+                      <DeleteIcon color='error' />
                     </IconButton>
                   }
                 >
                   <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: "white" }}>
-                      <PaymentsIcon color="success" />
+                    <Avatar sx={{ bgcolor: 'white' }}>
+                      <PaymentsIcon color='success' />
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText primary={formatter.format(prepaid.amount)} />
                 </ListItem>
               ))
             ) : (
-              <Alert severity="warning">Aún no se han agregado abonos!</Alert>
+              <Alert severity='warning'>Aún no se han agregado abonos!</Alert>
             )}
             <>
               <Divider sx={{ my: 1 }} />
               <ListItem secondaryAction={formatter.format(totalAmountPrepaids)}>
-                <ListItemText primary={"Abono total:"} />
+                <ListItemText primary={'Abono total:'} />
               </ListItem>
               <ListItem secondaryAction={formatter.format(remainingAmount)}>
-                <ListItemText primary={"Por pagar:"} />
+                <ListItemText primary={'Por pagar:'} />
               </ListItem>
             </>
           </List>
         </>
       </GenericModal>
     </>
-  );
-};
+  )
+}
 
-export default Calendar;
+export default Calendar
