@@ -4,7 +4,8 @@ import CustomEditor from './CustomEditor'
 import {
   useCreateReservationMutation,
   useDeleteReservationMutation,
-  useReservationsQuery
+  useReservationsQuery,
+  useUpdateReservationMutation
 } from '../../services/apis/reservationApi'
 import {
   useCreatePrepaidMutation,
@@ -32,11 +33,11 @@ import { useForm } from 'react-hook-form'
 import { useConfirm } from 'material-ui-confirm'
 import { formatter } from '../../config/constants'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
-import _ from 'lodash'
+import { reservationSchema } from '../../validations/ReservationValidation'
 
 const Calendar = () => {
   const confirm = useConfirm()
-  const [prepaidAmount, setPrepaidAmount] = useState()
+  const [prepaidAmount, setPrepaidAmount] = useState(0)
   const [addPrepaidModal, setAddPrepaidModal] = useState(false)
   const [selectedReservation, setSelectedReservation] = useState(null)
   const [prepaidDate, setPrepaidDate] = useState(moment().format('YYYY-MM-DD'))
@@ -51,11 +52,12 @@ const Calendar = () => {
     refetch: refetchReservations,
     isLoading
   } = useReservationsQuery(dates, {
-    skip: !dates,
-    refetchOnMountOrArgChange: true
+    skip: !dates
   })
   const [createReservation, { isLoading: isLoadingCreate }] =
     useCreateReservationMutation()
+  const [updateReservation, { isLoading: isLoadingUpdate }] =
+    useUpdateReservationMutation()
   const [deleteReservation, { isLoading: isLoadingDelete }] =
     useDeleteReservationMutation()
 
@@ -83,12 +85,12 @@ const Calendar = () => {
       reservations.map((reservation) =>
         events.push({
           event_id: reservation.id,
-          title: `Reserva - ${reservation.cabin.name} ${moment(
+          title: `Reserva - ${reservation?.cabin?.name} ${moment(
             reservation.startDate
           ).format('DD')} al  ${moment(reservation.endDate).format('DD')}`,
           start: new Date(reservation.startDate),
           end: new Date(reservation.endDate),
-          color: reservation.cabin.color,
+          color: reservation?.cabin?.color,
           reservation
         })
       )
@@ -122,11 +124,20 @@ const Calendar = () => {
     setPrepaidValue
   ])
 
-  const handleConfirm = async (data) => {
-    const { cabin, customerId, amount, discount, comments, dates, tinaja } =
-      data
+  const handleConfirm = async (data, closeFormModal) => {
+    const {
+      id,
+      cabinId,
+      customerId,
+      amount,
+      discount,
+      comments,
+      dates,
+      tinaja
+    } = data
     const reservation = {
-      cabinId: cabin.id,
+      id,
+      cabinId,
       customerId,
       amount,
       discount,
@@ -135,8 +146,16 @@ const Calendar = () => {
       tinaja,
       comments
     }
-    await createReservation(reservation)
-    refetchReservations()
+
+    const isValidReservation = await reservationSchema.isValid(reservation)
+    if (isValidReservation) {
+      // !data.id
+      //   ? await createReservation(reservation)
+      //   : await updateReservation(reservation);
+      refetchReservations()
+      closeFormModal()
+    }
+    console.log(isValidReservation)
   }
 
   const handleDeleteReservation = async (deletedId) => {
@@ -197,7 +216,6 @@ const Calendar = () => {
         }}
         getRemoteEvents={getRemoteEvents}
         events={formattedEvents}
-        onConfirm={handleConfirm}
         onDelete={handleDeleteReservation}
         viewerExtraComponent={(fields, event) => {
           return (
@@ -210,6 +228,7 @@ const Calendar = () => {
                     content: event.reservation
                   })
                   setListModal({ visible: true, prepaids })
+                  setPrepaidAmount('')
                 }}
               >
                 Listar abonos
@@ -233,7 +252,8 @@ const Calendar = () => {
             start: 'Entrada',
             end: 'Salida',
             allDay: 'Todo el día'
-          }
+          },
+          moreEvents: 'Reserva más...'
         }}
       />
 
@@ -349,7 +369,9 @@ const Calendar = () => {
                 </ListItem>
               ))
             ) : (
-              <Alert severity='warning'>Aún no se han agregado abonos!</Alert>
+              <Alert severity='warning' sx={{ my: 2 }}>
+                Aún no se han agregado abonos!
+              </Alert>
             )}
             <>
               <Divider sx={{ my: 1 }} />
