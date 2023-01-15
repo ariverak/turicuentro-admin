@@ -84,11 +84,6 @@ function CustomEditor({ scheduler }) {
     setErrors({})
   }
 
-  // const customerOptions = customers?.map((customer) => ({
-  //   customer,
-  //   label: customer.fullname
-  // }))
-
   useEffect(() => {
     if (scheduler?.edited) {
       const {

@@ -2,16 +2,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Scheduler } from 'react-scheduler-fix'
 import CustomEditor from './CustomEditor'
 import {
-  useCreateReservationMutation,
   useDeleteReservationMutation,
-  useLazyReservationsQuery,
-  useReservationsQuery,
-  useUpdateReservationMutation
+  useLazyReservationsQuery
 } from '../../services/apis/reservationApi'
 import {
   useCreatePrepaidMutation,
   useDeletePrepaidMutation,
-  //useUpdatePrepaidMutation,
   usePrepaidsQuery
 } from '../../services/apis/prepaidApi'
 import {
@@ -34,7 +30,6 @@ import { useForm } from 'react-hook-form'
 import { useConfirm } from 'material-ui-confirm'
 import { formatter } from '../../config/constants'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
-import { reservationSchema } from '../../validations/ReservationValidation'
 
 const Calendar = () => {
   const confirm = useConfirm()
@@ -182,6 +177,30 @@ const Calendar = () => {
           )
         }}
         week={false}
+        month={{
+          weekStartOn: 1,
+          weekDays: [0, 1, 2, 3, 4, 5, 6],
+          endHour: 23,
+          startHour: 0,
+          navigation: true
+        }}
+        locale={{
+          code: 'es',
+          formatLong: {
+            date: (n) => moment().format('DD/MM/YYYY'),
+            time: (n) => moment().format('HH:mm'),
+            dateTime: (n) => moment().format('DD/MM/YYYY HH:mm')
+          },
+
+          localize: {
+            month: (n) => moment().month(n).format('MMMM'),
+            day: (n) => moment().day(n).format('ddd').toUpperCase(),
+            dayPeriod: (n) => moment().format('A'),
+            quarter: (n) => moment().quarter(n).format('Q'),
+            era: (n) => moment().format('GGGG'),
+            ordinalNumber: (n) => moment().format('Do')
+          }
+        }}
         getRemoteEvents={getRemoteEvents}
         onDelete={handleDeleteReservation}
         viewerExtraComponent={(fields, event) => {
