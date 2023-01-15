@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import { LocalizationProvider } from '@mui/x-date-pickers-pro'
-import { AdapterDateFns } from '@mui/x-date-pickers-pro/AdapterDateFns'
-import { MobileDateRangePicker } from '@mui/x-date-pickers-pro/MobileDateRangePicker'
-import classNames from 'classnames'
+import React, { useEffect, useState } from "react";
+import { LocalizationProvider } from "@mui/x-date-pickers-pro";
+import { AdapterDateFns } from "@mui/x-date-pickers-pro/AdapterDateFns";
+import { MobileDateRangePicker } from "@mui/x-date-pickers-pro/MobileDateRangePicker";
+import classNames from "classnames";
 import {
   TextField,
   Box,
@@ -18,65 +18,70 @@ import {
   Select,
   MenuItem,
   Grid,
-  Autocomplete
-} from '@mui/material'
-import { useCabinsQuery } from '../../services/apis/cabinApi'
-import { useCustomersQuery } from '../../services/apis/customerApi'
-import moment from 'moment'
-import { formatter } from '../../config/constants'
-import { useSettingsQuery } from '../../services/apis/settingApi'
+  Autocomplete,
+} from "@mui/material";
+import { useCabinsQuery } from "../../services/apis/cabinApi";
+import { useCustomersQuery } from "../../services/apis/customerApi";
+import moment from "moment";
+import { formatter } from "../../config/constants";
+import { useSettingsQuery } from "../../services/apis/settingApi";
+import { reservationSchema } from "../../validations/ReservationValidation";
+import { useCreateReservationMutation, useReservationsQuery, useUpdateReservationMutation } from "../../services/apis/reservationApi";
 
 function CustomEditor({ scheduler }) {
-  const { data: cabins } = useCabinsQuery()
-  const { data: customers } = useCustomersQuery()
-  const { data: settings } = useSettingsQuery()
+  const { data:reservations, refetch: refetchReservations } = useReservationsQuery();
+  const [createReservation] = useCreateReservationMutation();
+  const [updateReservation] = useUpdateReservationMutation();
+  const { data: cabins } = useCabinsQuery();
+  const { data: customers } = useCustomersQuery();
+  const { data: settings } = useSettingsQuery();
 
-  const [open, setOpen] = useState(false)
-  const [reservationId, setReservationId] = useState(null)
-  const [dates, setDates] = useState([null, null])
-  const [cabinId, setCabinId] = useState(-1)
-  const [customerId, setCustomerId] = useState(-1)
-  const [discount, setDiscount] = useState(0)
-  const [tinaja, setTinaja] = useState(false)
-  const [comments, setComments] = useState('')
+  const [open, setOpen] = useState(false);
+  const [errors, setErrors] = useState(null);
+  const [reservationId, setReservationId] = useState(null);
+  const [dates, setDates] = useState([null, null]);
+  const [cabinId, setCabinId] = useState(-1);
+  const [customer, setCustomer] = useState({ fullname: "", id: -1 });
+  const [discount, setDiscount] = useState(0);
+  const [tinaja, setTinaja] = useState(false);
+  const [comments, setComments] = useState("");
 
-  const settingTinaja = settings?.reduce((setting) => setting.key === 'Tinaja')
-  const amountTinaja = tinaja ? +settingTinaja?.value : 0
+  const settingTinaja = settings?.reduce((setting) => setting.key === "Tinaja");
+  const amountTinaja = tinaja ? +settingTinaja?.value : 0;
   const reservationDays =
-    dates[1] && moment.duration(moment(dates[1]).diff(moment(dates[0]))).days()
-  const cabinPrice = cabins?.filter((cabin) => cabin.id === cabinId)[0]?.price
-  const amount = cabinPrice * reservationDays || cabinPrice || 0
-  const totalAmount = amount - discount + amountTinaja
+    dates[1] && moment.duration(moment(dates[1]).diff(moment(dates[0]))).days();
+  const cabinPrice = cabins?.filter((cabin) => cabin.id === cabinId)[0]?.price;
+  const amount = cabinPrice * reservationDays || cabinPrice || 0;
+  const totalAmount = amount - discount + amountTinaja;
 
   const verifyDiscount = (disc) => {
     if (!discount) {
-      return false
+      return false;
     }
     if (+discount === amount * disc) {
-      return true
+      return true;
     }
-    return false
-  }
+    return false;
+  };
   useEffect(() => {
     setTimeout(() => {
-      const customEditor = document.getElementsByClassName('custom-editor')[1]
+      const customEditor = document.getElementsByClassName("custom-editor")[1];
       if (open) {
-        customEditor.firstChild.style.display = 'none'
+        customEditor.firstChild.style.display = "none";
       }
-    }, 1)
-  }, [open])
+    }, 1);
+  }, [open]);
 
   useEffect(() => {
-    setDates([scheduler.state.start.value, null])
-  }, [scheduler])
+    setDates([scheduler.state.start.value, null]);
+  }, [scheduler]);
 
   const customerOptions = customers?.map((customer) => ({
     customer,
-    label: customer.fullname
-  }))
+    label: customer.fullname,
+  }));
 
   useEffect(() => {
-    console.log(scheduler.edited)
     if (scheduler?.edited) {
       const {
         id,
@@ -86,37 +91,63 @@ function CustomEditor({ scheduler }) {
         comments,
         discount,
         startDate,
-        endDate
-      } = scheduler?.edited?.reservation
-      setReservationId(id)
-      setCabinId(cabin.id)
-      setCustomerId(customer.id)
-      setTinaja(tinaja)
-      setComments(comments)
-      setDiscount(discount)
-      setDates([startDate, endDate])
+        endDate,
+      } = scheduler?.edited?.reservation;
+      setReservationId(id);
+      setCabinId(cabin.id);
+      setCustomer({ fullname: customer.fullname, id: customer.id });
+      setTinaja(tinaja);
+      setComments(comments);
+      setDiscount(discount);
+      setDates([startDate, endDate]);
     }
-  }, [scheduler?.edited])
+  }, [scheduler?.edited]);
+
+  scheduler.handleConfirm = async (data) => {
+    const isValidReservation = await reservationSchema
+      .validate(data, { abortEarly: false })
+      .catch((errors) => {
+        return errors?.inner;
+      });
+    if (Array.isArray(isValidReservation)) {
+      const errors = isValidReservation?.reduce(
+        (obj, item) => ((obj[item.path] = item.errors[0]), obj),
+        {}
+      );
+      console.log(errors);
+      setErrors(errors);
+      return;
+    }
+    !data.id
+    ? await createReservation(data)
+    : await updateReservation(data);
+    refetchReservations();
+    scheduler.close();
+  };
 
   return (
     <LocalizationProvider
       dateAdapter={AdapterDateFns}
-      localeText={{ start: 'Entrada', end: 'Salida' }}
+      localeText={{ start: "Entrada", end: "Salida" }}
     >
       <Card>
         <CardContent>
           <Typography sx={{ fontSize: 16, marginBottom: 2 }} gutterBottom>
             Agregar reserva
           </Typography>
-          <FormControl fullWidth sx={{ marginBottom: 2 }}>
-            <InputLabel id='select-cabin-label'>Cabaña</InputLabel>
+          <FormControl fullWidth sx={{ marginBottom: 2 }} required>
+            <InputLabel id="select-cabin-label">Cabaña</InputLabel>
             <Select
-              labelId='select-cabin-label'
+              required
+              labelId="select-cabin-label"
+              defaultValue={-1}
               value={cabinId}
-              label='Cabaña'
+              label="Cabaña"
+              helperText={errors?.cabinId}
               onChange={(e) => setCabinId(e.target.value)}
             >
-              <MenuItem value={-1}>NO SELECCIONADO</MenuItem>
+              <MenuItem value={-1}> NO SELECCIONADA</MenuItem>
+
               {cabins &&
                 cabins.map((cabin) => (
                   <MenuItem key={cabin.id} value={cabin.id}>
@@ -127,77 +158,55 @@ function CustomEditor({ scheduler }) {
           </FormControl>
           <FormControl fullWidth sx={{ marginBottom: 2 }}>
             <Autocomplete
-              disablePortal
-              options={customerOptions}
-              sx={{ width: 300 }}
+              inputValue={customer?.fullname}
+              options={customerOptions || []}
               isOptionEqualToValue={(option, value) =>
                 option.customer.id === value.customer.id
               }
               onChange={(_, { customer }) => {
-                setCustomerId(customer.id)
+                setCustomer({ fullname: customer.fullname, id: customer.id });
               }}
               renderInput={(params) => (
-                <TextField {...params} label='Cliente' />
+                <TextField
+                  {...params}
+                  label="Cliente"
+                  required
+                  helperText={errors?.customerId}
+                />
               )}
             />
-            <InputLabel id='select-customer-label'>Cliente</InputLabel>
-            <Select
-              labelId='select-customer-label'
-              value={customerId}
-              label='Cliente'
-              onChange={(e) => setCustomerId(e.target.value)}
-            >
-              <MenuItem value={-1}>NO SELECCIONADO</MenuItem>
-              {customers &&
-                customers.map((customer) => (
-                  <MenuItem key={customer.id} value={customer.id}>
-                    {customer.fullname}
-                  </MenuItem>
-                ))}
-            </Select>
           </FormControl>
-          <FormControlLabel
-            sx={{ marginBottom: 2, ml: 1 }}
-            label='Tinaja'
-            labelPlacement='start'
-            control={
-              <Switch
-                checked={tinaja}
-                onChange={(e) => setTinaja(e.target.checked)}
-                name='tinaja'
-              />
-            }
-          />
+
           <FormControl fullWidth sx={{ marginBottom: 2 }}>
             <TextField
-              label='Comentarios'
-              variant='outlined'
+              label="Comentarios"
+              variant="outlined"
               value={comments}
               onChange={(e) => setComments(e.target.value)}
             />
           </FormControl>
-          <Grid marginBottom={2} alignItems='center' container>
-            <Grid item sm={11}>
+          <Grid marginBottom={2} alignItems="center" container>
+            <Grid item sm={12}>
               <FormControl sx={{ marginBottom: 2 }}>
                 <TextField
                   focused
                   disabled
                   value={formatter.format(amount)}
-                  label='Valor Cabaña + Noches'
+                  label="Valor Cabaña + Noches"
                 />
               </FormControl>
             </Grid>
 
-            <Grid sm={4}>
+            <Grid item sm={4}>
               <FormControl>
                 <TextField
                   value={discount}
-                  type='number'
-                  label='Descuento'
+                  type="number"
+                  label="Descuento"
                   onChange={(e) => {
-                    if (e.target.value > amount) return
-                    if (discount < 0) return
-                    setDiscount(e.target.value, amount)
+                    if (e.target.value > amount) return;
+                    if (discount < 0) return;
+                    setDiscount(e.target.value, amount);
                   }}
                 />
               </FormControl>
@@ -206,111 +215,127 @@ function CustomEditor({ scheduler }) {
             <Grid item sm={8}>
               <Button
                 onClick={() => {
-                  setDiscount(amount * 0.05)
+                  setDiscount(amount * 0.05);
                 }}
-                variant={verifyDiscount(0.05) ? 'contained' : ''}
+                variant={verifyDiscount(0.05) ? "contained" : ""}
               >
                 5%
               </Button>
               <Button
                 onClick={() => {
-                  setDiscount(amount * 0.1)
+                  setDiscount(amount * 0.1);
                 }}
-                variant={verifyDiscount(0.1) ? 'contained' : ''}
+                variant={verifyDiscount(0.1) ? "contained" : ""}
               >
                 10%
               </Button>
               <Button
                 onClick={() => {
-                  setDiscount(amount * 0.2)
+                  setDiscount(amount * 0.2);
                 }}
-                variant={verifyDiscount(0.2) ? 'contained' : ''}
+                variant={verifyDiscount(0.2) ? "contained" : ""}
               >
                 20%
               </Button>
               <Button
                 onClick={() => {
-                  setDiscount(amount * 0.3)
+                  setDiscount(amount * 0.3);
                 }}
-                variant={verifyDiscount(0.3) ? 'contained' : ''}
+                variant={verifyDiscount(0.3) ? "contained" : ""}
               >
                 30%
               </Button>
               <Button
                 onClick={() => {
-                  setDiscount(amount * 0.4)
+                  setDiscount(amount * 0.4);
                 }}
-                variant={verifyDiscount(0.4) ? 'contained' : ''}
+                variant={verifyDiscount(0.4) ? "contained" : ""}
               >
                 40%
               </Button>
               <Button
                 onClick={() => {
-                  setDiscount(0)
+                  setDiscount(0);
                 }}
-                variant={discount === 0 ? 'contained' : ''}
+                variant={discount === 0 ? "contained" : ""}
               >
                 No Aplica
               </Button>
             </Grid>
           </Grid>
-          <FormControl sx={{ marginBottom: 2 }}>
-            <TextField
-              focused
-              disabled
-              value={formatter.format(totalAmount)}
-              label='Total + Descuento'
-            />
-          </FormControl>
-
+          <Grid container alignItems="center" marginBottom={2}>
+            <Grid item sm={4}>
+              <FormControl>
+                <TextField
+                  focused
+                  disabled
+                  value={formatter.format(totalAmount)}
+                  label="Total + Descuento"
+                />
+              </FormControl>
+            </Grid>
+            <Grid item sm={8}>
+              <FormControlLabel
+                label="Tinaja"
+                labelPlacement="start"
+                control={
+                  <Switch
+                    checked={tinaja}
+                    onChange={(e) => setTinaja(e.target.checked)}
+                    name="tinaja"
+                  />
+                }
+              />
+            </Grid>
+          </Grid>
           {/* <FormControl className={classes.input} fullWidth >
             <TextField label="Mensajes" variant="outlined" rows={4} />
           </FormControl> */}
 
           <MobileDateRangePicker
-            sx={{ marginBottom: 2 }}
             value={dates}
             open={open}
             onOpen={() => setOpen(true)}
             onClose={() => setOpen(false)}
-            className={classNames('custom-editor')}
+            className={classNames("custom-editor")}
             onChange={(newValue) => {
-              setDates(newValue)
+              setDates(newValue);
             }}
             renderInput={(startProps, endProps) => (
               <>
-                <TextField {...startProps} />
+                <TextField {...startProps} required />
                 <Box sx={{ mx: 2 }}> hasta </Box>
-                <TextField {...endProps} />
+                <TextField {...endProps} required />
               </>
             )}
           />
         </CardContent>
-        <CardActions>
+        <CardActions sx={{ margin: 2 }}>
           <Button
-            variant='outlined'
-            sx={{ marginLeft: 'auto' }}
+            variant="outlined"
+            sx={{ marginLeft: "auto" }}
             onClick={scheduler.close}
           >
             Cancelar
           </Button>
           <Button
-            variant='contained'
-            color='primary'
+            variant="contained"
+            color="primary"
             onClick={() => {
               scheduler.handleConfirm(
                 {
                   id: reservationId,
                   cabinId,
-                  customerId,
+                  customerId: customer.id,
                   tinaja,
                   comments,
                   amount: totalAmount,
                   discount,
-                  dates
+                  startDate : dates[0],
+                  endDate: dates[1]
                 },
-                scheduler.close
-              )
+                scheduler
+              );
             }}
           >
             Confirmar
@@ -318,7 +343,7 @@ function CustomEditor({ scheduler }) {
         </CardActions>
       </Card>
     </LocalizationProvider>
-  )
+  );
 }
 
-export default CustomEditor
+export default CustomEditor;
