@@ -55,6 +55,7 @@ export const reservationApi = createApi({
 
 export const {
   useReservationsQuery,
+  useLazyReservationsQuery,
   useGetReservationQuery,
   useCreateReservationMutation,
   useUpdateReservationMutation,

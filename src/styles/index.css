@@ -1,8 +1,13 @@
 
-.rs__cell p {
-  pointer-events: none;
-}
 
 main {
   width: 100vw;
+}
+
+.rs__outer_table .rs__cell {
+  /* display: none !important; */
+}
+
+.rs__outer_table .rs__cell:not(:nth-child(2)) {
+  /* display: none !important; */
 }

@@ -8,6 +8,8 @@ import DeleteModal from '../components/DeleteModal'
 import { useForm } from 'react-hook-form'
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import { customerSchema } from '../validations/CustomerValidation'
+import { yupResolver } from '@hookform/resolvers/yup'
 
 
 const Customers = () => {
@@ -25,7 +27,10 @@ const Customers = () => {
     register: registerCustomer,
     reset: resetCustomer,
     setValue: setCustomerValue,
-  } = useForm();
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(customerSchema)
+  });
 
   const onSubmitCustomer = async (data) => {
 
@@ -139,6 +144,8 @@ const Customers = () => {
               id="fullname"
               label="Nombre Completo"
               name="fullname"
+              error={errors?.fullname && true}
+              helperText={errors?.fullname?.message}
               {...registerCustomer("fullname")}
 
             />
@@ -148,6 +155,8 @@ const Customers = () => {
               id="email"
               label="Correo Electrónico"
               name="email"
+              error={errors?.email && true}
+              helperText={errors?.email?.message}
               {...registerCustomer("email")}
 
             />
@@ -157,6 +166,8 @@ const Customers = () => {
               id="phone"
               label="Número de Teléfono"
               name="phone"
+              error={errors?.phone && true}
+              helperText={errors?.phone?.message}
               {...registerCustomer("phone")}
             />
             <Grid justifyContent="space-between" container marginTop={3}>
