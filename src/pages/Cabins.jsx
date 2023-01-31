@@ -21,7 +21,7 @@ import {
 import FormModal from "../components/FormModal";
 import DeleteModal from "../components/DeleteModal";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup"
+import { yupResolver } from "@hookform/resolvers/yup";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { HexColorPicker } from "react-colorful";
@@ -29,9 +29,12 @@ import { formatter } from "../config/constants";
 import { cabinSchema } from "../validations/CabinValidation";
 
 const Cabins = () => {
-  const [deleteCabin, { isLoading: isLoadingDelete }] = useDeleteCabinMutation();
-  const [updateCabin, { isLoading: isLoadingUpdate }] = useUpdateCabinMutation();
-  const [createCabin, { isLoading: isLoadingCreate }] = useCreateCabinMutation();
+  const [deleteCabin, { isLoading: isLoadingDelete }] =
+    useDeleteCabinMutation();
+  const [updateCabin, { isLoading: isLoadingUpdate }] =
+    useUpdateCabinMutation();
+  const [createCabin, { isLoading: isLoadingCreate }] =
+    useCreateCabinMutation();
 
   const { data: cabins, refetch: refetchCabin } = useCabinsQuery();
 
@@ -132,10 +135,9 @@ const Cabins = () => {
             aria-label="delete"
             color="error"
             size="small"
-            onClick={() => {
-              setDeleteModal({ visible: true, cabinId: params.row.id });
-              console.log(params.row.id);
-            }}
+            onClick={() =>
+              setDeleteModal({ visible: true, cabinId: params.row.id })
+            }
           >
             <DeleteIcon />
           </IconButton>
@@ -213,16 +215,16 @@ const Cabins = () => {
               display="flex"
               onClick={handleClickShowColorPicker}
             >
-              <Typography color="black" fontWeight="bold" >
+              <Typography color="black" fontWeight="bold">
                 {color || "Seleccionar Color"}
               </Typography>
             </Box>
-            
+
             <Popover
               id={id}
               open={open}
               anchorEl={anchorEl}
-              onClose={handleCloseColorPicker}   
+              onClose={handleCloseColorPicker}
               anchorOrigin={{
                 vertical: "bottom",
                 horizontal: "left",

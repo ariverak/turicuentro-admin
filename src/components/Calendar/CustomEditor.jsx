@@ -125,7 +125,6 @@ function CustomEditor({ scheduler }) {
     scheduler.refetch()
   }
 
-  console.log('errors', errors)
 
   return (
     <LocalizationProvider
